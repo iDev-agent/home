@@ -221,7 +221,7 @@
         <img src="./icon.png" alt="iDev" />
         <span class="name">iDev 收件箱</span>
         <span class="spacer"></span>
-        <a class="nav-cta" href="https://github.com/iDev-agent/idev-inbox-dist" target="_blank" rel="noopener">GitHub ↗</a>
+        <a class="nav-cta" href="https://github.com/iDev-agent/home" target="_blank" rel="noopener">GitHub ↗</a>
       </nav>
 
       <header class="hero">
@@ -230,15 +230,15 @@
         <h1>任务跑完，<span class="grad">菜单栏见</span></h1>
         <p class="tag">你在飞书 @iDev 发起的任务，完成即在菜单栏轻轻提醒。点一下，直达机器人回复的那条消息。</p>
         <div class="cta">
-          <a class="btn btn-primary" id="download" href="https://github.com/iDev-agent/idev-inbox-dist/releases/latest">下载 macOS 版</a>
-          <a class="btn btn-ghost" href="https://github.com/iDev-agent/idev-inbox-dist/releases" target="_blank" rel="noopener">全部版本</a>
+          <a class="btn btn-primary" id="download" href="https://github.com/iDev-agent/home/releases/latest">下载 macOS 版</a>
+          <a class="btn btn-ghost" href="https://github.com/iDev-agent/home/releases" target="_blank" rel="noopener">全部版本</a>
         </div>
         <span class="ver" id="version">Apple Silicon · 免费内部工具</span>
 
         <div class="install">
           <div class="cmd">
             <span class="prompt">$</span>
-            <code id="cmd">curl -fsSL https://raw.githubusercontent.com/iDev-agent/idev-inbox-dist/main/install.sh | bash</code>
+            <code id="cmd">curl -fsSL https://raw.githubusercontent.com/iDev-agent/home/main/install.sh | bash</code>
             <button id="copy">复制</button>
           </div>
         </div>
@@ -275,18 +275,18 @@
         <h2 class="reveal">让每个任务都有回响</h2>
         <p class="reveal">装上它，安心去忙别的。</p>
         <div class="cta reveal">
-          <a class="btn btn-primary" id="download2" href="https://github.com/iDev-agent/idev-inbox-dist/releases/latest">下载 macOS 版</a>
+          <a class="btn btn-primary" id="download2" href="https://github.com/iDev-agent/home/releases/latest">下载 macOS 版</a>
         </div>
       </section>
 
       <footer>
-        iDev 收件箱 · 内部工具　|　<a href="https://github.com/iDev-agent/idev-inbox-dist" target="_blank" rel="noopener">GitHub</a>　|　有问题私聊 iDev 反馈
+        iDev 收件箱 · 内部工具　|　<a href="https://github.com/iDev-agent/home" target="_blank" rel="noopener">GitHub</a>　|　有问题私聊 iDev 反馈
       </footer>
     </div>
 
     <script>
       // 最新 release → 下载按钮直链 + 版本号（public 仓库匿名可调）
-      fetch("https://api.github.com/repos/iDev-agent/idev-inbox-dist/releases/latest")
+      fetch("https://api.github.com/repos/iDev-agent/home/releases/latest")
         .then((r) => (r.ok ? r.json() : null))
         .then((rel) => {
           if (!rel) return;

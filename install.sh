@@ -3,11 +3,11 @@
 # iDev 收件箱一键安装（macOS）。应用未做 Apple 公证，本脚本下载最新版后
 # 自动去隔离 + ad-hoc 重签，绕过 Gatekeeper，免去「右键打开 / 系统设置放行」。
 #
-#   curl -fsSL https://raw.githubusercontent.com/iDev-agent/idev-inbox-dist/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/iDev-agent/home/main/install.sh | bash
 #
 set -euo pipefail
 
-REPO="iDev-agent/idev-inbox-dist"
+REPO="iDev-agent/home"
 DEST="/Applications"
 
 case "$(uname -m)" in
