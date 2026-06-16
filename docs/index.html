@@ -230,7 +230,7 @@
         <h1>任务跑完，<span class="grad">菜单栏见</span></h1>
         <p class="tag">你在飞书 @iDev 发起的任务，完成即在菜单栏轻轻提醒。点一下，直达机器人回复的那条消息。</p>
         <div class="cta">
-          <a class="btn btn-primary" id="download" href="https://github.com/iDev-agent/home/releases/latest">下载 macOS 版</a>
+          <a class="btn btn-primary" id="download" href="https://github.com/iDev-agent/home/releases/latest/download/iDev.Inbox_aarch64.dmg">下载 macOS 版</a>
           <a class="btn btn-ghost" href="https://github.com/iDev-agent/home/releases" target="_blank" rel="noopener">全部版本</a>
         </div>
         <span class="ver" id="version">Apple Silicon · 免费内部工具</span>
@@ -270,7 +270,7 @@
         <h2 class="reveal">我听到了「终焉」的回响</h2>
         <p class="reveal">每个任务跑到终焉，你都会第一时间听见。</p>
         <div class="cta reveal">
-          <a class="btn btn-primary" id="download2" href="https://github.com/iDev-agent/home/releases/latest">下载 macOS 版</a>
+          <a class="btn btn-primary" id="download2" href="https://github.com/iDev-agent/home/releases/latest/download/iDev.Inbox_aarch64.dmg">下载 macOS 版</a>
         </div>
       </section>
 
@@ -287,13 +287,11 @@
       );
 
       // 最新 release → 下载按钮直链 + 版本号（public 仓库匿名可调）
+      // 下载按钮已是固定直链（latest/download/<固定名>），点击直接下载；此处仅用最新版本号点缀文案
       fetch("https://api.github.com/repos/iDev-agent/home/releases/latest")
         .then((r) => (r.ok ? r.json() : null))
         .then((rel) => {
-          if (!rel) return;
-          const dmg = (rel.assets || []).find((a) => a.name.endsWith(".dmg"));
-          if (dmg) { document.getElementById("download").href = dmg.browser_download_url; document.getElementById("download2").href = dmg.browser_download_url; }
-          if (rel.tag_name) document.getElementById("version").textContent = rel.tag_name + " · Apple Silicon · 免费内部工具";
+          if (rel && rel.tag_name) document.getElementById("version").textContent = rel.tag_name + " · Apple Silicon · 免费内部工具";
         })
         .catch(() => {});
 
