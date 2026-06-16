@@ -4,247 +4,295 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>iDev 收件箱 · 飞书任务完成提醒</title>
-    <meta name="description" content="iDev 收件箱：你在飞书 @iDev 发起的任务，完成即在 macOS 菜单栏提醒，点一下直达那条消息。" />
+    <meta name="description" content="你在飞书 @iDev 发起的任务，完成即在 macOS 菜单栏提醒，点一下直达那条消息。" />
     <link rel="icon" type="image/png" href="./icon.png" />
     <meta property="og:title" content="iDev 收件箱" />
     <meta property="og:description" content="飞书 @iDev 的任务，完成即提醒，一点直达。" />
     <meta property="og:image" content="./icon.png" />
     <style>
       :root {
-        --bg: #ffffff;
-        --bg-soft: #f6f7f9;
-        --text: #1a1a1f;
-        --text-2: #5b5b66;
-        --text-3: #8a8a96;
-        --line: rgba(0, 0, 0, 0.08);
-        --card: #ffffff;
-        --accent: #0a7cff;
-        --radius: 16px;
-        --shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-      }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg: #0e0e12;
-          --bg-soft: #15151b;
-          --text: #f3f3f5;
-          --text-2: #b0b0bb;
-          --text-3: #7a7a86;
-          --line: rgba(255, 255, 255, 0.1);
-          --card: #17171e;
-          --shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-        }
+        --bg: #07070a;
+        --bg-soft: #0d0d12;
+        --text: #f4f4f7;
+        --text-2: rgba(244, 244, 247, 0.62);
+        --text-3: rgba(244, 244, 247, 0.4);
+        --line: rgba(255, 255, 255, 0.09);
+        --line-soft: rgba(255, 255, 255, 0.05);
+        --card: rgba(255, 255, 255, 0.025);
+        --blue: #5b8cf0;
+        --violet: #9b6cf0;
+        --pink: #f5a3c7;
+        --amber: #ff9f43;
+        --grad: linear-gradient(110deg, #6ea0ff 0%, #a78bff 38%, #f5a3c7 72%, #ffb86b 100%);
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC",
+          "Segoe UI", system-ui, sans-serif;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html { scroll-behavior: smooth; }
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", system-ui, sans-serif;
         background: var(--bg);
         color: var(--text);
         line-height: 1.6;
         -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
       }
       a { color: inherit; text-decoration: none; }
-      .wrap { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+      ::selection { background: rgba(167, 139, 255, 0.32); }
+
+      /* 背景多彩光晕 */
+      .aurora { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+      .orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.5; }
+      .orb.b1 { width: 620px; height: 620px; top: -180px; left: -120px;
+        background: radial-gradient(circle, var(--blue), transparent 66%); animation: drift1 22s ease-in-out infinite; }
+      .orb.b2 { width: 560px; height: 560px; top: -80px; right: -140px;
+        background: radial-gradient(circle, var(--pink), transparent 66%); animation: drift2 26s ease-in-out infinite; }
+      .orb.b3 { width: 520px; height: 520px; top: 380px; left: 30%;
+        background: radial-gradient(circle, var(--violet), transparent 66%); opacity: 0.36; animation: drift3 30s ease-in-out infinite; }
+      .orb.b4 { width: 420px; height: 420px; top: 220px; right: 8%;
+        background: radial-gradient(circle, var(--amber), transparent 66%); opacity: 0.22; animation: drift1 28s ease-in-out infinite reverse; }
+      @keyframes drift1 { 50% { transform: translate(50px, 60px) scale(1.08); } }
+      @keyframes drift2 { 50% { transform: translate(-60px, 40px) scale(1.1); } }
+      @keyframes drift3 { 50% { transform: translate(40px, -50px) scale(1.05); } }
+      .grain {
+        position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.04;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      }
+
+      .shell { position: relative; z-index: 2; }
+      .wrap { max-width: 1000px; margin: 0 auto; padding: 0 28px; }
 
       /* nav */
       nav {
-        display: flex; align-items: center; gap: 10px;
-        height: 64px; max-width: 960px; margin: 0 auto; padding: 0 24px;
+        position: sticky; top: 0; z-index: 20;
+        display: flex; align-items: center; gap: 11px;
+        max-width: 1000px; margin: 0 auto; padding: 16px 28px;
+        backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
       }
       nav img { width: 30px; height: 30px; border-radius: 8px; }
-      nav .name { font-weight: 700; font-size: 16px; }
+      nav .name { font-weight: 650; font-size: 15px; letter-spacing: -0.01em; }
       nav .spacer { flex: 1; }
-      nav .gh { color: var(--text-2); font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
-      nav .gh:hover { color: var(--text); }
+      nav .nav-cta {
+        font-size: 13px; padding: 8px 16px; border-radius: 10px;
+        border: 1px solid var(--line); color: var(--text);
+        transition: background 0.2s ease, border-color 0.2s ease;
+      }
+      nav .nav-cta:hover { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.2); }
 
       /* hero */
-      .hero { text-align: center; padding: 56px 24px 40px; position: relative; overflow: hidden; }
-      .hero::before {
-        content: ""; position: absolute; inset: -40% 0 auto 0; height: 460px; z-index: 0;
-        background:
-          radial-gradient(closest-side, rgba(91, 140, 240, 0.20), transparent 70%) -10% 0,
-          radial-gradient(closest-side, rgba(245, 163, 199, 0.20), transparent 70%) 110% 10%,
-          radial-gradient(closest-side, rgba(255, 159, 67, 0.14), transparent 70%) 50% -10%;
-        background-repeat: no-repeat; filter: blur(8px);
+      .hero { text-align: center; padding: 86px 28px 64px; }
+      .badge {
+        display: inline-flex; align-items: center; gap: 7px;
+        font-size: 12.5px; color: var(--text-2); letter-spacing: 0.01em;
+        padding: 6px 14px; border-radius: 999px;
+        border: 1px solid var(--line); background: var(--card);
+        margin-bottom: 30px;
       }
-      .hero > * { position: relative; z-index: 1; }
+      .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: #34c759; box-shadow: 0 0 10px #34c759; }
       .hero .logo {
-        width: 112px; height: 112px; border-radius: 26px; box-shadow: var(--shadow);
-        margin-bottom: 22px;
+        width: 104px; height: 104px; border-radius: 26px; margin-bottom: 30px;
+        filter: drop-shadow(0 10px 40px rgba(155, 108, 240, 0.5));
+        animation: float 6s ease-in-out infinite;
       }
-      .hero h1 { font-size: 40px; letter-spacing: -0.5px; margin-bottom: 12px; }
-      .hero p.tag { font-size: 18px; color: var(--text-2); max-width: 540px; margin: 0 auto 30px; }
-
-      .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+      @keyframes float { 50% { transform: translateY(-12px); } }
+      .hero h1 {
+        font-size: clamp(40px, 7vw, 76px); font-weight: 700; line-height: 1.04;
+        letter-spacing: -0.035em; margin-bottom: 22px;
+      }
+      .hero h1 .grad {
+        background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+      }
+      .hero .tag {
+        font-size: clamp(15px, 2.2vw, 19px); color: var(--text-2);
+        max-width: 560px; margin: 0 auto 38px; line-height: 1.6;
+      }
+      .cta { display: flex; gap: 13px; justify-content: center; flex-wrap: wrap; align-items: center; }
       .btn {
-        display: inline-flex; align-items: center; gap: 8px;
-        padding: 12px 22px; border-radius: 12px; font-size: 15px; font-weight: 600;
-        transition: transform 0.06s ease, filter 0.15s ease, background 0.15s ease;
+        display: inline-flex; align-items: center; gap: 9px;
+        padding: 14px 26px; border-radius: 13px; font-size: 15px; font-weight: 600;
+        transition: transform 0.08s ease, box-shadow 0.25s ease, filter 0.2s ease;
       }
       .btn:active { transform: scale(0.97); }
-      .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 4px 14px rgba(10, 124, 255, 0.35); }
-      .btn-primary:hover { filter: brightness(1.07); }
-      .btn-ghost { background: var(--bg-soft); color: var(--text); border: 1px solid var(--line); }
-      .btn-ghost:hover { background: var(--card); }
-      .ver { display: block; margin-top: 14px; font-size: 13px; color: var(--text-3); }
+      .btn-primary { color: #fff; position: relative; background: var(--grad); background-size: 180% 180%;
+        box-shadow: 0 8px 30px rgba(123, 110, 240, 0.4); animation: shift 6s ease infinite; }
+      @keyframes shift { 50% { background-position: 100% 50%; } }
+      .btn-primary:hover { filter: brightness(1.08); box-shadow: 0 10px 40px rgba(123, 110, 240, 0.55); }
+      .btn-ghost { border: 1px solid var(--line); color: var(--text); background: var(--card); }
+      .btn-ghost:hover { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.22); }
+      .ver { display: block; margin-top: 16px; font-size: 12.5px; color: var(--text-3); letter-spacing: 0.01em; }
 
-      /* install command */
-      .install { max-width: 620px; margin: 34px auto 0; }
-      .install .label { font-size: 13px; color: var(--text-3); margin-bottom: 8px; }
+      .install { max-width: 600px; margin: 40px auto 0; }
       .cmd {
         display: flex; align-items: center; gap: 10px;
-        background: var(--bg-soft); border: 1px solid var(--line); border-radius: 12px;
-        padding: 12px 14px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px;
+        background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line); border-radius: 13px;
+        padding: 13px 15px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px;
       }
+      .cmd .prompt { color: var(--text-3); }
       .cmd code { flex: 1; overflow-x: auto; white-space: nowrap; color: var(--text); text-align: left; }
+      .cmd code::-webkit-scrollbar { height: 0; }
       .cmd button {
-        flex-shrink: 0; border: none; background: var(--card); color: var(--text-2);
-        border: 1px solid var(--line); border-radius: 8px; padding: 5px 10px; font-size: 12px; cursor: pointer;
+        flex-shrink: 0; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.04);
+        color: var(--text-2); border-radius: 8px; padding: 6px 11px; font-size: 12px; cursor: pointer;
+        transition: color 0.2s ease, background 0.2s ease;
       }
-      .cmd button:hover { color: var(--text); }
+      .cmd button:hover { color: var(--text); background: rgba(255, 255, 255, 0.09); }
 
-      /* section */
-      section { padding: 56px 0; }
-      section h2 { text-align: center; font-size: 26px; margin-bottom: 8px; letter-spacing: -0.3px; }
-      section .sub { text-align: center; color: var(--text-2); margin-bottom: 36px; }
+      /* sections */
+      section { padding: 72px 0; }
+      .eyebrow { text-align: center; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase;
+        color: var(--violet); margin-bottom: 14px; font-weight: 600; }
+      .h2 { text-align: center; font-size: clamp(28px, 4vw, 40px); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 12px; }
+      .sub { text-align: center; color: var(--text-2); margin-bottom: 50px; font-size: 16px; }
 
-      .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-      .feat { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
-      .feat .emoji { font-size: 24px; }
-      .feat h3 { font-size: 16px; margin: 10px 0 6px; }
-      .feat p { font-size: 14px; color: var(--text-2); }
+      .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+      .feat {
+        position: relative; padding: 28px; border-radius: 20px;
+        background: var(--card); border: 1px solid var(--line-soft); overflow: hidden;
+        transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+      }
+      .feat::before {
+        content: ""; position: absolute; inset: 0; border-radius: 20px; padding: 1px;
+        background: var(--grad); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; transition: opacity 0.3s ease;
+      }
+      .feat:hover { transform: translateY(-4px); background: rgba(255, 255, 255, 0.04); }
+      .feat:hover::before { opacity: 0.6; }
+      .feat .ic {
+        width: 46px; height: 46px; border-radius: 13px; display: flex; align-items: center; justify-content: center;
+        font-size: 22px; margin-bottom: 18px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--line);
+      }
+      .feat h3 { font-size: 17px; font-weight: 650; margin-bottom: 8px; letter-spacing: -0.01em; }
+      .feat p { font-size: 14.5px; color: var(--text-2); line-height: 1.6; }
 
-      .steps { counter-reset: s; display: flex; flex-direction: column; gap: 14px; max-width: 640px; margin: 0 auto; }
+      .steps { display: flex; flex-direction: column; gap: 16px; max-width: 640px; margin: 0 auto; }
       .step {
-        display: flex; gap: 16px; align-items: flex-start;
-        background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px;
+        display: flex; gap: 20px; align-items: flex-start;
+        padding: 24px 26px; border-radius: 18px; background: var(--card); border: 1px solid var(--line-soft);
       }
-      .step::before {
-        counter-increment: s; content: counter(s);
-        flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
-        background: var(--accent); color: #fff; font-weight: 700; font-size: 14px;
+      .step .n {
+        flex-shrink: 0; width: 34px; height: 34px; border-radius: 11px;
+        background: var(--grad); color: #fff; font-weight: 700; font-size: 15px;
         display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 4px 16px rgba(123, 110, 240, 0.4);
       }
-      .step h3 { font-size: 15px; margin-bottom: 2px; }
-      .step p { font-size: 14px; color: var(--text-2); }
-      .step code { background: var(--bg-soft); padding: 1px 6px; border-radius: 5px; font-family: ui-monospace, Menlo, monospace; font-size: 13px; }
+      .step h3 { font-size: 16px; font-weight: 650; margin-bottom: 4px; }
+      .step p { font-size: 14.5px; color: var(--text-2); }
+      .step code {
+        background: rgba(255, 255, 255, 0.07); padding: 2px 8px; border-radius: 6px;
+        font-family: ui-monospace, Menlo, monospace; font-size: 13px; color: var(--pink);
+      }
 
-      .note { max-width: 640px; margin: 22px auto 0; font-size: 13px; color: var(--text-3); text-align: center; }
+      /* final cta */
+      .final { text-align: center; padding: 90px 28px; position: relative; }
+      .final .glow {
+        position: absolute; inset: 0; z-index: -1;
+        background: radial-gradient(closest-side, rgba(155, 108, 240, 0.22), transparent 70%);
+      }
+      .final h2 { font-size: clamp(30px, 5vw, 50px); font-weight: 700; letter-spacing: -0.035em; margin-bottom: 18px; }
+      .final p { color: var(--text-2); margin-bottom: 32px; font-size: 16px; }
 
-      footer { border-top: 1px solid var(--line); padding: 30px 24px; text-align: center; color: var(--text-3); font-size: 13px; }
-      footer a { color: var(--text-2); }
+      footer {
+        border-top: 1px solid var(--line-soft); padding: 34px 28px; text-align: center;
+        color: var(--text-3); font-size: 13px;
+      }
+      footer a { color: var(--text-2); transition: color 0.2s ease; }
       footer a:hover { color: var(--text); }
 
-      @media (max-width: 640px) {
-        .hero h1 { font-size: 32px; }
+      .reveal { opacity: 0; transform: translateY(22px); transition: opacity 0.7s ease, transform 0.7s ease; }
+      .reveal.in { opacity: 1; transform: none; }
+      @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; } .orb, .hero .logo, .btn-primary { animation: none; } }
+
+      .note { max-width: 640px; margin: 26px auto 0; font-size: 13px; color: var(--text-3); text-align: center; }
+
+      @media (max-width: 720px) {
         .grid { grid-template-columns: 1fr; }
+        .hero { padding-top: 60px; }
       }
     </style>
   </head>
 
   <body>
-    <nav>
-      <img src="./icon.png" alt="iDev" />
-      <span class="name">iDev 收件箱</span>
-      <span class="spacer"></span>
-      <a class="gh" href="https://github.com/iDev-agent/idev-inbox-dist" target="_blank" rel="noopener">
-        GitHub ↗
-      </a>
-    </nav>
+    <div class="aurora">
+      <div class="orb b1"></div><div class="orb b2"></div><div class="orb b3"></div><div class="orb b4"></div>
+    </div>
+    <div class="grain"></div>
 
-    <header class="hero">
-      <img class="logo" src="./icon.png" alt="iDev 收件箱" />
-      <h1>任务完成，菜单栏见</h1>
-      <p class="tag">你在飞书 @iDev 发起的任务，完成即在 macOS 菜单栏提醒，点一下直达机器人回复的那条消息。</p>
-      <div class="cta">
-        <a class="btn btn-primary" id="download" href="https://github.com/iDev-agent/idev-inbox-dist/releases/latest">
-          ⬇ 下载 macOS 版
-        </a>
-        <a class="btn btn-ghost" href="https://github.com/iDev-agent/idev-inbox-dist/releases" target="_blank" rel="noopener">
-          全部版本
-        </a>
-      </div>
-      <span class="ver" id="version">Apple Silicon · 免费内部工具</span>
+    <div class="shell">
+      <nav>
+        <img src="./icon.png" alt="iDev" />
+        <span class="name">iDev 收件箱</span>
+        <span class="spacer"></span>
+        <a class="nav-cta" href="https://github.com/iDev-agent/idev-inbox-dist" target="_blank" rel="noopener">GitHub ↗</a>
+      </nav>
 
-      <div class="install">
-        <div class="label">或一行命令安装（自动下载、去隔离、装进 /Applications 并启动）</div>
-        <div class="cmd">
-          <code id="cmd">curl -fsSL https://raw.githubusercontent.com/iDev-agent/idev-inbox-dist/main/install.sh | bash</code>
-          <button id="copy">复制</button>
+      <header class="hero">
+        <div class="badge"><span class="dot"></span> macOS · 菜单栏常驻 · 自动更新</div>
+        <img class="logo" src="./icon.png" alt="iDev 收件箱" />
+        <h1>任务跑完，<span class="grad">菜单栏见</span></h1>
+        <p class="tag">你在飞书 @iDev 发起的任务，完成即在菜单栏轻轻提醒。点一下，直达机器人回复的那条消息。</p>
+        <div class="cta">
+          <a class="btn btn-primary" id="download" href="https://github.com/iDev-agent/idev-inbox-dist/releases/latest">下载 macOS 版</a>
+          <a class="btn btn-ghost" href="https://github.com/iDev-agent/idev-inbox-dist/releases" target="_blank" rel="noopener">全部版本</a>
         </div>
-      </div>
-    </header>
+        <span class="ver" id="version">Apple Silicon · 免费内部工具</span>
 
-    <main class="wrap">
-      <section>
-        <h2>它能做什么</h2>
-        <p class="sub">极轻的菜单栏小应用，专注一件事：让你不漏掉任何一个跑完的任务。</p>
-        <div class="grid">
-          <div class="feat">
-            <div class="emoji">🔔</div>
-            <h3>完成即提醒</h3>
-            <p>菜单栏常驻，任务跑完图标旁出现数字角标，不用一直盯着飞书。</p>
+        <div class="install">
+          <div class="cmd">
+            <span class="prompt">$</span>
+            <code id="cmd">curl -fsSL https://raw.githubusercontent.com/iDev-agent/idev-inbox-dist/main/install.sh | bash</code>
+            <button id="copy">复制</button>
           </div>
-          <div class="feat">
-            <div class="emoji">🎯</div>
-            <h3>一点直达</h3>
-            <p>点任意一条已完成任务，直接唤起飞书并定位到机器人回复的那条消息。</p>
+        </div>
+      </header>
+
+      <main class="wrap">
+        <section>
+          <div class="eyebrow reveal">Features</div>
+          <h2 class="h2 reveal">为「不漏掉」而生</h2>
+          <p class="sub reveal">极轻的菜单栏小应用，专注一件事。</p>
+          <div class="grid">
+            <div class="feat reveal"><div class="ic">🔔</div><h3>完成即提醒</h3><p>菜单栏常驻，任务跑完图标旁亮起数字角标，不必一直盯着飞书。</p></div>
+            <div class="feat reveal"><div class="ic">🎯</div><h3>一点直达</h3><p>点任意一条已完成任务，直接唤起飞书并定位到机器人回复的那条消息。</p></div>
+            <div class="feat reveal"><div class="ic">🗂</div><h3>自动归档</h3><p>完成的任务按你设定的时长（10 分钟 ~ 1 天）自动清理，列表始终清爽。</p></div>
+            <div class="feat reveal"><div class="ic">🧰</div><h3>内置小工具</h3><p>「绕过签名」等实用工具收在设置页，解决未签名 App 打不开等问题，持续扩展。</p></div>
           </div>
-          <div class="feat">
-            <div class="emoji">🗂</div>
-            <h3>自动归档</h3>
-            <p>完成的任务按你设定的时长（10 分钟 ~ 1 天）自动清理，列表始终清爽。</p>
+        </section>
+
+        <section>
+          <div class="eyebrow reveal">Get started</div>
+          <h2 class="h2 reveal">三步开始用</h2>
+          <p class="sub reveal">装好后大约一分钟完成配置。</p>
+          <div class="steps">
+            <div class="step reveal"><div class="n">1</div><div><h3>安装</h3><p>用上面的一键命令，或下载 <code>.dmg</code> 拖入安装。首次打开若提示「已损坏 / 不受信任」，右键图标 → 打开即可。</p></div></div>
+            <div class="step reveal"><div class="n">2</div><div><h3>获取 token</h3><p>飞书私聊 iDev 机器人，发送 <code>/inbox</code>，会回一张带专属 token 的卡片（永久有效、请勿泄露）。</p></div></div>
+            <div class="step reveal"><div class="n">3</div><div><h3>填入设置</h3><p>点菜单栏 iDev 图标 → 右下角齿轮 → 把 token 填进去保存。服务地址自动读取，无需手填。</p></div></div>
           </div>
-          <div class="feat">
-            <div class="emoji">🧰</div>
-            <h3>内置小工具</h3>
-            <p>「绕过签名」等实用工具内置在设置页，解决未签名 App 打不开等问题，持续扩展。</p>
-          </div>
+          <p class="note reveal">目前仅支持 macOS（Apple Silicon）。已安装的版本会通过内置更新器自动升级到最新。</p>
+        </section>
+      </main>
+
+      <section class="final">
+        <div class="glow"></div>
+        <h2 class="reveal">让每个任务都有回响</h2>
+        <p class="reveal">装上它，安心去忙别的。</p>
+        <div class="cta reveal">
+          <a class="btn btn-primary" id="download2" href="https://github.com/iDev-agent/idev-inbox-dist/releases/latest">下载 macOS 版</a>
         </div>
       </section>
 
-      <section>
-        <h2>三步开始用</h2>
-        <p class="sub">装好后大约一分钟完成配置。</p>
-        <div class="steps">
-          <div class="step">
-            <div>
-              <h3>安装</h3>
-              <p>用上面的一键命令，或下载 <code>.dmg</code> 拖入安装。首次打开若提示「已损坏 / 不受信任」，右键图标 → 打开即可。</p>
-            </div>
-          </div>
-          <div class="step">
-            <div>
-              <h3>获取 token</h3>
-              <p>飞书私聊 iDev 机器人，发送 <code>/inbox</code>，机器人会回一张带专属 token 的卡片（永久有效、请勿泄露）。</p>
-            </div>
-          </div>
-          <div class="step">
-            <div>
-              <h3>填入设置</h3>
-              <p>点菜单栏 iDev 图标 → 右下角齿轮 → 把 token 填进去保存。服务地址自动读取，无需手动填。</p>
-            </div>
-          </div>
-        </div>
-        <p class="note">目前仅支持 macOS（Apple Silicon）。已安装的版本会通过内置更新器自动升级到最新。</p>
-      </section>
-    </main>
-
-    <footer>
-      iDev 收件箱 · 内部工具　|　<a href="https://github.com/iDev-agent/idev-inbox-dist" target="_blank" rel="noopener">GitHub</a>　|　有问题私聊 iDev 反馈
-    </footer>
+      <footer>
+        iDev 收件箱 · 内部工具　|　<a href="https://github.com/iDev-agent/idev-inbox-dist" target="_blank" rel="noopener">GitHub</a>　|　有问题私聊 iDev 反馈
+      </footer>
+    </div>
 
     <script>
-      // 拉取最新 release，把下载按钮指向最新 .dmg 直链 + 显示版本号（public 仓库匿名可调）
+      // 最新 release → 下载按钮直链 + 版本号（public 仓库匿名可调）
       fetch("https://api.github.com/repos/iDev-agent/idev-inbox-dist/releases/latest")
         .then((r) => (r.ok ? r.json() : null))
         .then((rel) => {
           if (!rel) return;
           const dmg = (rel.assets || []).find((a) => a.name.endsWith(".dmg"));
-          if (dmg) document.getElementById("download").href = dmg.browser_download_url;
-          if (rel.tag_name)
-            document.getElementById("version").textContent =
-              rel.tag_name + " · Apple Silicon · 免费内部工具";
+          if (dmg) { document.getElementById("download").href = dmg.browser_download_url; document.getElementById("download2").href = dmg.browser_download_url; }
+          if (rel.tag_name) document.getElementById("version").textContent = rel.tag_name + " · Apple Silicon · 免费内部工具";
         })
         .catch(() => {});
 
@@ -253,12 +301,13 @@
         const btn = document.getElementById("copy");
         try {
           await navigator.clipboard.writeText(document.getElementById("cmd").textContent.trim());
-          btn.textContent = "已复制";
-          setTimeout(() => (btn.textContent = "复制"), 1600);
-        } catch {
-          btn.textContent = "复制失败";
-        }
+          btn.textContent = "已复制"; setTimeout(() => (btn.textContent = "复制"), 1600);
+        } catch { btn.textContent = "复制失败"; }
       });
+
+      // 滚动渐入
+      const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: 0.14 });
+      document.querySelectorAll(".reveal").forEach((el, i) => { el.style.transitionDelay = (i % 4) * 60 + "ms"; io.observe(el); });
     </script>
   </body>
 </html>
