@@ -272,8 +272,8 @@
 
       <section class="final">
         <div class="glow"></div>
-        <h2 class="reveal">让每个任务都有回响</h2>
-        <p class="reveal">装上它，安心去忙别的。</p>
+        <h2 class="reveal">我听到了「终焉」的回响</h2>
+        <p class="reveal">每个任务跑到终焉，你都会第一时间听见。</p>
         <div class="cta reveal">
           <a class="btn btn-primary" id="download2" href="https://github.com/iDev-agent/home/releases/latest">下载 macOS 版</a>
         </div>
@@ -285,6 +285,12 @@
     </div>
 
     <script>
+      // 「我听到了『终焉』的回响」—— 致敬《十日终焉》
+      console.log(
+        "%c我听到了「终焉」的回响 ",
+        "font-size:15px;font-weight:700;padding:6px 0;background:linear-gradient(110deg,#6ea0ff,#a78bff,#f5a3c7,#ffb86b);-webkit-background-clip:text;background-clip:text;color:transparent;"
+      );
+
       // 最新 release → 下载按钮直链 + 版本号（public 仓库匿名可调）
       fetch("https://api.github.com/repos/iDev-agent/home/releases/latest")
         .then((r) => (r.ok ? r.json() : null))
