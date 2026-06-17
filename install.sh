@@ -12,7 +12,8 @@ DEST="/Applications"
 
 case "$(uname -m)" in
   arm64) ASSET="iDev.Inbox_aarch64.app.tar.gz" ;;
-  *) echo "✗ 目前仅提供 macOS Apple Silicon 版本（当前架构: $(uname -m)）" >&2; exit 1 ;;
+  x86_64) ASSET="iDev.Inbox_x64.app.tar.gz" ;;
+  *) echo "✗ 不支持的架构: $(uname -m)（仅 macOS arm64 / x86_64）" >&2; exit 1 ;;
 esac
 
 # .app.tar.gz 文件名跨版本固定，直接走 latest 直链——不调 API、不受未认证速率限制

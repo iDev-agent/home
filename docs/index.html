@@ -119,6 +119,12 @@
       .btn-ghost { border: 1px solid var(--line); color: var(--text); background: var(--card); }
       .btn-ghost:hover { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.22); }
       .ver { display: block; margin-top: 16px; font-size: 12.5px; color: var(--text-3); letter-spacing: 0.01em; }
+      .platforms { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; margin-top: 16px; font-size: 13px; }
+      .platforms a { color: var(--text-3); display: inline-flex; align-items: center; gap: 5px; transition: color 0.2s ease; }
+      .platforms a::before { content: "↓"; font-size: 11px; opacity: 0.55; }
+      .platforms a:hover { color: var(--text); }
+      .platforms a.cur { color: var(--text); font-weight: 600; }
+      .install-tip { font-size: 12px; color: var(--text-3); text-align: center; margin-bottom: 9px; }
 
       .install { max-width: 600px; margin: 40px auto 0; }
       .cmd {
@@ -225,7 +231,7 @@
       </nav>
 
       <header class="hero">
-        <div class="badge"><span class="dot"></span> macOS · 菜单栏常驻 · 自动更新</div>
+        <div class="badge"><span class="dot"></span> macOS · Windows · 自动更新</div>
         <img class="logo" src="./icon.png" alt="iDev 收件箱" />
         <h1>任务跑完，<span class="grad">菜单栏见</span></h1>
         <p class="tag">你在飞书 @iDev 发起的任务，完成即在菜单栏轻轻提醒。点一下，直达机器人回复的那条消息。</p>
@@ -233,9 +239,15 @@
           <a class="btn btn-primary" id="download" href="https://github.com/iDev-agent/home/releases/latest/download/iDev.Inbox_aarch64.dmg">下载 macOS 版</a>
           <a class="btn btn-ghost" href="https://github.com/iDev-agent/home/releases" target="_blank" rel="noopener">全部版本</a>
         </div>
-        <span class="ver" id="version">Apple Silicon · 免费内部工具</span>
+        <span class="ver" id="version">免费内部工具</span>
+        <div class="platforms" id="platforms">
+          <a data-os="mac-arm" href="https://github.com/iDev-agent/home/releases/latest/download/iDev.Inbox_aarch64.dmg">macOS · Apple Silicon</a>
+          <a data-os="mac-intel" href="https://github.com/iDev-agent/home/releases/latest/download/iDev.Inbox_x64.dmg">macOS · Intel</a>
+          <a data-os="win" href="https://github.com/iDev-agent/home/releases/latest/download/iDev.Inbox_x64-setup.exe">Windows</a>
+        </div>
 
         <div class="install">
+          <div class="install-tip">macOS 一键安装（自动去隔离 + 装进 /Applications）</div>
           <div class="cmd">
             <span class="prompt">$</span>
             <code id="cmd">curl -fsSL https://raw.githubusercontent.com/iDev-agent/home/main/install.sh | bash</code>
@@ -261,7 +273,7 @@
             <div class="step reveal"><div class="n">2</div><div><h3>获取 token</h3><p>飞书私聊 iDev 机器人，发送 <code>/inbox</code>，会回一张带专属 token 的卡片（永久有效、请勿泄露）。</p></div></div>
             <div class="step reveal"><div class="n">3</div><div><h3>填入设置</h3><p>点菜单栏 iDev 图标 → 右下角齿轮 → 把 token 填进去保存。服务地址自动读取，无需手填。</p></div></div>
           </div>
-          <p class="note reveal">目前仅支持 macOS（Apple Silicon）。已安装的版本会通过内置更新器自动升级到最新。</p>
+          <p class="note reveal">支持 macOS（Apple Silicon / Intel）与 Windows。已安装的版本会通过内置更新器自动升级到最新。</p>
         </section>
       </main>
 
@@ -286,12 +298,29 @@
         "font-size:15px;font-weight:700;padding:6px 0;background:linear-gradient(110deg,#6ea0ff,#a78bff,#f5a3c7,#ffb86b);-webkit-background-clip:text;background-clip:text;color:transparent;"
       );
 
-      // 最新 release → 下载按钮直链 + 版本号（public 仓库匿名可调）
-      // 下载按钮已是固定直链（latest/download/<固定名>），点击直接下载；此处仅用最新版本号点缀文案
+      // 平台识别：主下载按钮指向访客系统对应的安装包，并高亮全平台链接区的当前平台。
+      // macOS 默认给 Apple Silicon（浏览器无法可靠区分芯片）；Intel 用户走下方链接。
+      (function () {
+        const BASE = "https://github.com/iDev-agent/home/releases/latest/download/";
+        const ua = navigator.userAgent || "";
+        const plat = navigator.platform || "";
+        const isWin = /Win/i.test(plat) || /Windows/i.test(ua);
+        let key = "mac-arm", label = "下载 macOS 版", file = "iDev.Inbox_aarch64.dmg";
+        if (isWin) { key = "win"; label = "下载 Windows 版"; file = "iDev.Inbox_x64-setup.exe"; }
+        const url = BASE + file;
+        ["download", "download2"].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) { el.href = url; el.textContent = label; }
+        });
+        const cur = document.querySelector('#platforms a[data-os="' + key + '"]');
+        if (cur) cur.classList.add("cur");
+      })();
+
+      // 版本号点缀文案
       fetch("https://api.github.com/repos/iDev-agent/home/releases/latest")
         .then((r) => (r.ok ? r.json() : null))
         .then((rel) => {
-          if (rel && rel.tag_name) document.getElementById("version").textContent = rel.tag_name + " · Apple Silicon · 免费内部工具";
+          if (rel && rel.tag_name) document.getElementById("version").textContent = rel.tag_name + " · 免费内部工具";
         })
         .catch(() => {});
 
